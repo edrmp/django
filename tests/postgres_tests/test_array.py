@@ -13,10 +13,11 @@ from django.utils import timezone
 from . import PostgresSQLTestCase
 from .models import (
     ArrayFieldSubclass, CharArrayModel, DateTimeArrayModel, IntegerArrayModel,
-    NestedIntegerArrayModel, NullableIntegerArrayModel, OtherTypesArrayModel,
+    NestedIntegerArrayModel, NullableIntegerArrayModel, OtherTypesArrayModel, IntegerRangesArrayModel
 )
 
 try:
+    from psycopg2.extras import NumericRange
     from django.contrib.postgres.fields import ArrayField
     from django.contrib.postgres.forms import SimpleArrayField, SplitArrayField
 except ImportError:
@@ -96,6 +97,26 @@ class TestSaveLoad(PostgresSQLTestCase):
         self.assertEqual(instance.ips, loaded.ips)
         self.assertEqual(instance.uuids, loaded.uuids)
         self.assertEqual(instance.decimals, loaded.decimals)
+
+    def test_integer_ranges_passed_as_tuples(self):
+        instance = IntegerRangesArrayModel(
+            int_ranges=[(10, 20), (30, 40), ],
+            bigint_ranges=[(7000000000, 10000000000), (50000000000, 70000000000)]
+        )
+        instance.save()
+        loaded = IntegerRangesArrayModel.objects.get()
+        self.assertEqual(instance.int_ranges, loaded.int_ranges)
+        self.assertEqual(instance.bigint_ranges, loaded.bigint_ranges)
+
+    def test_integer_ranges_passed_as_numericrange_instances(self):
+        instance = IntegerRangesArrayModel(
+            int_ranges=[NumericRange(10, 20), NumericRange(30, 40), ],
+            bigint_ranges=[NumericRange(7000000000, 10000000000), NumericRange(50000000000, 70000000000)]
+        )
+        instance.save()
+        loaded = IntegerRangesArrayModel.objects.get()
+        self.assertEqual(instance.int_ranges, loaded.int_ranges)
+        self.assertEqual(instance.bigint_ranges, loaded.bigint_ranges)
 
 
 class TestQuerying(PostgresSQLTestCase):
