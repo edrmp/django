@@ -52,7 +52,7 @@ class TextFieldModel(models.Model):
     field = models.TextField()
 
 
-# Only create this model for databases which support it
+# Only create these models for databases which support it
 if connection.vendor == 'postgresql' and connection.pg_version >= 90200:
     class RangesModel(PostgreSQLModel):
         ints = IntegerRangeField(blank=True, null=True)
@@ -60,9 +60,16 @@ if connection.vendor == 'postgresql' and connection.pg_version >= 90200:
         floats = FloatRangeField(blank=True, null=True)
         timestamps = DateTimeRangeField(blank=True, null=True)
         dates = DateRangeField(blank=True, null=True)
+
+    class IntegerRangesArrayModel(PostgreSQLModel):
+        int_ranges = ArrayField(IntegerRangeField(), blank=True, null=True)
+        bigint_ranges = ArrayField(BigIntegerRangeField(), blank=True, null=True)
 else:
-    # create an object with this name so we don't have failing imports
+    # create objects with these names so we don't have failing imports
     class RangesModel(object):
+        pass
+
+    class IntegerRangesArrayModel(object):
         pass
 
 
